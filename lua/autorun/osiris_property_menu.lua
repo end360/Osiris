@@ -73,7 +73,7 @@ hook.Add("PhysgunPickup", "OsirisWorldPhysgun", function(ply, ent)
 end)
 
 hook.Add("CanTool", "OsirisToolBlock", function(ply, tr, tool)
-    if (OSIRIS_CONFIG.ToolRestrictions[ply:GetUserGroup()] and OSIRIS_CONFIG.ToolRestrictions[ply:GetUserGroup()][tool]) or (OSIRIS_CONFIG.ToolRestrictions["*"] and OSIRIS_CONFIG.ToolRestrictions["*"][tool]) then
+    if (OSIRIS_CONFIG.ToolRestrictions and OSIRIS_CONFIG.ToolRestrictions[ply:GetUserGroup()] and OSIRIS_CONFIG.ToolRestrictions[ply:GetUserGroup()][tool]) or (OSIRIS_CONFIG.ToolRestrictions and OSIRIS_CONFIG.ToolRestrictions["*"] and OSIRIS_CONFIG.ToolRestrictions["*"][tool]) then
         net.Start("OsirisMessage")
             net.WriteString("You cannot use \"" .. tool .. "\".")
         net.Send(ply)
