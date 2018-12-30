@@ -78,6 +78,10 @@ hook.Add("PlayerAuthed", "OsirisNetworking", function(ply)
         net.WriteString("OsirisTouchWorld")
         net.WriteType(OSIRIS_CONFIG.OsirisTouchWorld)
     net.Send(ply)
+    net.Start("OsirisConfigVar")
+        net.WriteString("OsirisTouchWorld")
+        net.WriteType(OSIRIS_CONFIG.EntityWhiteList)
+    net.Send(ply)
 end)
 
 util.AddNetworkString("PropBlacklist")
@@ -107,26 +111,6 @@ net.Receive("GetPropBlacklist", function(l, ply)
     net.Start("OsirisConfig")
         net.WriteTable(OSIRIS_CONFIG)
     net.Send(ply)
---[[
-    local cached_blacklist = table.GetKeys(OSIRIS_CONFIG.PropBlacklistModels)
-
-    local size = #cached_blacklist
-    local blocks = math.ceil(size / 100)
-    for I=1, blocks do
-        net.Start("GetPropBlacklist")
-            net.WriteUInt(I, 32)
-            net.WriteUInt(blocks, 32)
-            local Y = 0
-            for Y=(I-1)*100+1, (I+1)*100 do
-                local str = cached_blacklist[Y]
-                if not str then break end
-                if str == "" then continue end -- would break sending
-
-                net.WriteString(str)
-            end
-        net.Send(ply)
-    end
-    ]]--
 end)
 
 net.Receive("ModifyPropBlacklist", function(l, ply)
@@ -254,6 +238,7 @@ end
 --------------------
 
 local function GhostProp( ent )
+    if not OsirisShouldBotherEntity( ent ) then return end
     if not OSIRIS_CONFIG.Ghosting then return end
 	if not ent:GetClass() == "prop_physics" then return end
     ent.OldColor = ent.OldColor or ent:GetColor()
@@ -271,6 +256,7 @@ local function GhostProp( ent )
 end
 
 local function UnGhostProp( ent )
+    if not OsirisShouldBotherEntity( ent ) then return end
     if not OSIRIS_CONFIG.Ghosting then return end
 	if not ent:GetClass() == "prop_physics" then return end
     if ent.OldColor then
@@ -289,7 +275,7 @@ end
 --{ Prop Spawned }--
 
 util.AddNetworkString("PlayerCloseMsg")
-
+-- not the hoverboard problem
 hook.Add("PlayerSpawnedProp", "OsirisPropGhosting", function(ply, model, ent)
     if OSIRIS_CONFIG.BlacklistEnabled and OSIRIS_CONFIG.PropBlacklistModels[ model ] then
         ent:Remove()
@@ -318,9 +304,9 @@ hook.Add("PlayerSpawnedProp", "OsirisPropGhosting", function(ply, model, ent)
 end)
 
 --{ Prop Unfreezing }--
-
+-- not the hoverboard problem
 hook.Add("CanPlayerUnfreeze", "OsirisUnfreeze", function(ply, ent, phys)
-    if OSIRIS_CONFIG.Unfreeze then
+    if OSIRIS_CONFIG.Unfreeze and OsirisShouldBotherEntity(ent) then
         return false
     end
 end)
@@ -330,9 +316,9 @@ end)
 --------------------
 
 --{ Car No Collide with Players }--
-
+-- not the hoverboard problem
 hook.Add("OnEntityCreated", "OsirisCarNoCollide", function(ent)
-    if OSIRIS_CONFIG.VehicleNocollide and ent:IsVehicle() then
+    if OSIRIS_CONFIG.VehicleNocollide and ent:IsVehicle() and OsirisShouldBotherEntity( ent ) then
         timer.Simple(0, function()
 	       ent:SetCollisionGroup(COLLISION_GROUP_WEAPON)
         end)
@@ -344,7 +330,7 @@ end)
 --------------------
 
 --{ Physgun Pickup }--
-
+-- not the hoverboard problem
 hook.Add("PhysgunPickup", "OsirisNoCollideOnPickup", function(ply, ent)
 	if ent:IsPlayer() then
 		return
@@ -356,6 +342,8 @@ hook.Add("PhysgunPickup", "OsirisNoCollideOnPickup", function(ply, ent)
 	if string.find(ent:GetClass(), "door")  then
 		return
 	end
+
+    if not OsirisShouldBotherEntity( ent ) then return end
 
 	if ent:IsVehicle() then
         if OSIRIS_CONFIG.VehicleNocollide then
@@ -371,7 +359,7 @@ end)
 --{ Freeze Prop and No Collide In Player and Car }--
 
 util.AddNetworkString("FreezeInPlayerMsg")
-
+-- not the hoverboard problem
 hook.Add("PhysgunDrop", "OsirisNoCollideNearPlayer", function(ply, ent)
     if OSIRIS_CONFIG.VehicleNocollide and ent:IsVehicle() then
         return ent:SetCollisionGroup(COLLISION_GROUP_WEAPON)
@@ -384,6 +372,7 @@ hook.Add("PhysgunDrop", "OsirisNoCollideNearPlayer", function(ply, ent)
 	if OSIRIS_CONFIG.BlacklistEnabled and OSIRIS_CONFIG.PropBlacklistModels[ent:GetModel()] then
 		return
 	end
+    if not OsirisShouldBotherEntity( ent ) then return end
 
     if OSIRIS_CONFIG.Ghosting then
         for _,v in pairs(ents.GetAll()) do
@@ -409,9 +398,9 @@ hook.Add("PhysgunDrop", "OsirisNoCollideNearPlayer", function(ply, ent)
     end
 end)
 
-
+-- not the hoverboard problem
 hook.Add("PlayerDisconnected", "OsirisRemoveLeavers", function(ply)
-    if OSIRIS_CONFIG.RemovePlayerLeave or OSIRIS_CONFIG.RemovePlayerLeave < 0 then return end
+    if not OSIRIS_CONFIG.RemovePlayerLeave or OSIRIS_CONFIG.RemovePlayerLeave < 0 then return end
     local sid = ply:SteamID()
 
     timer.Create("osiris_remove_leaver_" .. sid, OSIRIS_CONFIG.RemovePlayerLeave, 1, function()

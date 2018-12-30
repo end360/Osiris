@@ -55,12 +55,14 @@ end
 local ENTITY = FindMetaTable("Entity")
 ENTITY.oGetOwner = ENTITY.oGetOwner or ENTITY.GetOwner
 function ENTITY:CPPIGetOwner()
+    if not OsirisShouldBotherEntity(self) then return self:GetOwner() end
     local Owner = self:GetNWEntity("cppiOwner")
     if not IsValid(Owner) or not Owner:IsPlayer() then return SERVER and Owner or nil, self:GetNWString("cppiOwnerID") end
     return Owner, Owner:UniqueID()
 end
 
 function ENTITY:GetOwner()
+    if not OsirisShouldBotherEntity(self) then return self:oGetOwner() end
     local o = self:CPPIGetOwner()
     if IsValid(o) then return o end
     return self:oGetOwner()
@@ -68,6 +70,7 @@ end
 
 if SERVER then
     function ENTITY:CPPISetOwner(ply)
+        if not OsirisShouldBotherEntity(self) then return end
         if ply == self:GetNWEntity("cppiOwner") then return end
 
         local valid = IsValid(ply) and ply:IsPlayer()
@@ -87,52 +90,63 @@ if SERVER then
     end
 
     function ENTITY:CPPICanTool(ply, tool)
+        if not OsirisShouldBotherEntity(self) then return true end
         local owner = self:CPPIGetOwner()
         return ply:IsSuperAdmin() or owner == ply or (IsValid(owner) and owner:IsPlayer() and owner:OsirisFriendCanDo(ply, "tool"))
     end
 
     function ENTITY:CPPICanPhysgun(ply)
+        if not OsirisShouldBotherEntity(self) then return true end
         local owner = self:CPPIGetOwner()
         return ply:IsSuperAdmin() or owner == ply or (IsValid(owner) and owner:IsPlayer() and owner:OsirisFriendCanDo(ply, "phys"))
     end
 
     function ENTITY:CPPICanPickup(ply)
+        if not OsirisShouldBotherEntity(self) then return true end
         local owner = self:CPPIGetOwner()
         return ply:IsSuperAdmin() or owner == ply or (IsValid(owner) and owner:IsPlayer() and owner:OsirisFriendCanDo(ply, "use"))
     end
 
     function ENTITY:CPPICanPunt(ply)
+        if not OsirisShouldBotherEntity(self) then return true end
         local owner = self:CPPIGetOwner()
         return ply:IsSuperAdmin() or owner == ply or (IsValid(owner) and owner:IsPlayer() and owner:OsirisFriendCanDo(ply, "grav"))
     end
 
     function ENTITY:CPPICanUse(ply)
+        if not OsirisShouldBotherEntity(self) then return true end
         local owner = self:CPPIGetOwner()
         return ply:IsSuperAdmin() or owner == ply or (IsValid(owner) and owner:IsPlayer() and owner:OsirisFriendCanDo(ply, "use"))
     end
 
     function ENTITY:CPPICanDamage(ply)
+        if not OsirisShouldBotherEntity(self) then return true end
         local owner = self:CPPIGetOwner()
         return ply:IsSuperAdmin() or owner == ply or (IsValid(owner) and owner:IsPlayer() and owner:OsirisFriendCanDo(ply, "dng"))
     end
 
     function ENTITY:CPPIDrive(ply)
+        if not OsirisShouldBotherEntity(self) then return true end
         return ply:IsSuperAdmin() or self:CPPIGetOwner() == ply
     end
 
     function ENTITY:CPPICanProperty(ply, property)
+        if not OsirisShouldBotherEntity(self) then return true end
         return ply:IsSuperAdmin() or self:CPPIGetOwner() == ply
     end
 
     function ENTITY:CPPICanEditVariable(ply, key, val, editTbl)
+        if not OsirisShouldBotherEntity(self) then return true end
         return self:CPPICanProperty(ply, "editentity")
     end
 
     local function SetOwnerGeneric(ply, mdl, ent)
+        if not OsirisShouldBotherEntity(ent) then return true end
         if not IsValid(ent) or not IsValid(ply) then return end
         ent:CPPISetOwner(ply)
     end
     local function SetOwnerGeneric2(ply, ent)
+        if not OsirisShouldBotherEntity(ent) then return true end
         if not IsValid(ply) or not IsValid(ent) then return end
         ent:CPPISetOwner(ply)
     end

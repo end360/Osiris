@@ -136,8 +136,10 @@ local function AddBuddyMenuOnline()
     local lines = {}
 
     for k, v in pairs(player.GetHumans()) do
+        if v == LocalPlayer() then continue end
         local line = scroller:Add("EditablePanel")
         line:SetSize(300, 16)
+        line:Dock(TOP)
 
         line.Paint = function() end
 

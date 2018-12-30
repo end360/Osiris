@@ -35,6 +35,14 @@ OSIRIS_CONFIG.DisableFPP = true
 OSIRIS_CONFIG.OsirisSeeOwner   = "superadmin"
 OSIRIS_CONFIG.OsirisTouchWorld = "superadmin"
 OSIRIS_CONFIG.GravgunWorldProps = "superadmin"
+OSIRIS_CONFIG.ToolgunWorldEnts = {
+    "superadmin"
+}
+OSIRIS_CONFIG.EntityWhiteList = { -- entities that osiris should ignore completely
+    ["modulus_hoverboard"]=true,
+    ["modulus_hoverboard_avatar"]=true,
+    ["modulus_hoverboard_hull"]=true,
+}
 --[[
 
 NOTICE
@@ -147,8 +155,21 @@ hook.Add("OsirisConfigChanged", "FPPDisable",function()
             OSIRIS_FPP_OLD = nil
         end
     end
+    net.Start("OsirisConfigVar")
+        net.WriteString("OsirisSeeOwner")
+        net.WriteType(OSIRIS_CONFIG.OsirisSeeOwner)
+    net.Broadcast()
+    net.Start("OsirisConfigVar")
+        net.WriteString("OsirisTouchWorld")
+        net.WriteType(OSIRIS_CONFIG.OsirisTouchWorld)
+    net.Broadcast()
+    net.Start("OsirisConfigVar")
+        net.WriteString("OsirisTouchWorld")
+        net.WriteType(OSIRIS_CONFIG.EntityWhiteList)
+    net.Broadcast()
 end)
 timer.Simple(1, function()
 hook.Call("OsirisConfigChanged")
 end)
 Msg("Osiris config loaded\n")
+
